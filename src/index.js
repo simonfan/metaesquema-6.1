@@ -100,36 +100,20 @@ function setup(options) {
   let runner = Metaesquema.Matter.Runner.createMixedRunner(engine)
   runner.run()
 
-  let wallGenerator = Metaesquema.Matter.Bodies.walls({
-    width: CANVAS_WIDTH,
-    height: CANVAS_HEIGHT,
+  let walls = _composites.walls({
+    x: CANVAS_WIDTH/2,
+    y: CANVAS_HEIGHT/2,
+    areaWidth: CANVAS_WIDTH - 120,
+    areaHeight: CANVAS_HEIGHT - 120,
+    wallWidth: 60,
+  }, (position, x, y, width, height) => {
+    return Bodies.rectangle(x, y, width, height, {
+      isStatic: true,
+      render: {
+        fillStyle: 'red'
+      }
+    })
   })
-
-  let walls = [
-    wallGenerator.top({
-      label: 'CEILING',
-      restitution: 1,
-    }),
-
-    wallGenerator.bottom({
-      label: 'GROUND',
-      restitution: 1,
-      friction: 0,
-      frictionStatic: 0,
-    }),
-
-    wallGenerator.left({
-      label: 'LEFT',
-      isStatic: true,
-      restitution: 1,
-    }),
-
-    wallGenerator.right({
-      label: 'RIGHT',
-      isStatic: true,
-      restitution: 1,
-    }),
-	]
 
   World.add(engine.world, walls)
 
@@ -209,20 +193,6 @@ function setup(options) {
         maxVolume: 4,
       }
     ),
-    // matterMicrophone(CANVAS_WIDTH * 3 / 4, CANVAS_HEIGHT / 2, CANVAS_WIDTH / 2 * 3/5,
-    //   {
-    //     label: 'mic-2',
-    //     isStatic: true,
-    //     render: {
-    //       fillStyle: '#753255',
-    //     }
-    //   },
-    //   {
-    //     soundBodies: soundBodies,
-    //     minVolume: -30,
-    //     maxVolume: 10,
-    //   }
-    // ),
   ]
 
   World.add(engine.world, microphones)
@@ -236,23 +206,15 @@ function setup(options) {
     0, // startAngle
     2 * Math.PI, // endAngle
     100, //sides
-    {
-      // bodyWidth:
-      bodyHeight: 10,
-    }, {
-      // isStatic: true,
-      angle: 0,
-      density: 1,
-      restitution: 1,
-      render: {
-        // fillStyle: 'red',
+    (x, y, arcPartLength, angle) => {
+      let bodyOptions = {
+        angle: 0,
+        density: 1,
       }
+
+      return Matter.Bodies.rectangle(x, y, arcPartLength, 10, bodyOptions)
     }
   ))
-
-
-
-
 
   // add mouse control
   let mouse = Mouse.create(render.canvas)

@@ -1,12 +1,11 @@
 const Matter = require('matter-js')
 
-exports.arc = function (x, y, radius, startAngle, endAngle, sides, arcOptions, options) {
-	options = options || {}
-	arcOptions = arcOptions || {}
-
+exports.arc = function (x, y, radius, startAngle, endAngle, sides, callback) {
 	if (sides < 3) {
 		throw new Error('sides must be higher than 2')
 	}
+
+	let arcComposite = Matter.Composite.create({ label: 'Arc' })
 
 	let theta = (endAngle - startAngle) / sides
 
@@ -30,42 +29,81 @@ exports.arc = function (x, y, radius, startAngle, endAngle, sides, arcOptions, o
 	// there certainly is a mathematically more intelligent manner of doing this...
 	let arcPartLength = Matter.Vector.magnitude(Matter.Vector.sub(arcInnerPoints[1], arcInnerPoints[0]))
 
-	let bodyWidth = arcOptions.bodyWidth || arcPartLength
-	let bodyHeight = arcOptions.bodyHeight || 10
-
-	// we must push the center half the bodyHeight outwards
-	// let bodyHeightGrowAdjust = bodyHeight / 2
-	//  Math.sqrt(2) / 2 * bodyHeight
-	
-
-	let bodies = arcInnerPoints.map((point, index) => {
+	arcInnerPoints.forEach((point, index) => {
 		let nextPoint = arcInnerPoints[index + 1] || arcLastInnerPoint
 
 		let center = Matter.Vector.div(Matter.Vector.add(point, nextPoint), 2)
 
-		// center = Matter.Vector.mult(center, (bodyHeightGrowAdjust + radius) / radius)
-
-		// add the distance required
-
 		let diff = Matter.Vector.sub(nextPoint, point)
 
-		return {
-			center: center,
-			angle: Math.atan(diff.y / diff.x),
+		let body = callback(
+			x + center.x,
+			y + center.y,
+			arcPartLength,
+			Math.atan(diff.y / diff.x)
+		)
+
+		Matter.Composite.addBody(arcComposite, body)
+	})
+
+	return arcComposite
+}
+
+/**
+ * Creates a wall composite
+ * @param  {Object}   options
+ * @param  {Number}   - x          Walls center X
+ * @param  {Number}   - y          Walls center Y
+ * @param  {Number}   - areaWidth  Walled area width
+ * @param  {Number}   - areaHeight Walled area height
+ * @param  {Number}   - wallWidth  Each wall's width
+ * @param  {Function} callback     Function that creates a body
+ * @return {Matter.Composite}
+ */
+function createWallsComposite(options, callback) {
+	let wallsComposite = Matter.Composite.create({ label: 'Walls' })
+
+	let wallsSpecs = [
+		{
+			position: 'top',
+			x: options.x,
+			y: options.y - (options.areaHeight / 2) - (options.wallWidth / 2),
+			width: options.areaWidth,
+			height: options.wallWidth,
+		},
+		{
+			position: 'bottom',
+			x: options.x,
+			y: options.y + (options.areaHeight / 2) + (options.wallWidth / 2),
+			width: options.areaWidth,
+			height: options.wallWidth,
+		},
+		{
+			position: 'left',
+			x: options.x - (options.areaWidth / 2) - (options.wallWidth / 2),
+			y: options.y,
+			width: options.wallWidth,
+			height: options.areaHeight
+		},
+		{
+			position: 'right',
+			x: options.x + (options.areaWidth / 2) + (options.wallWidth / 2),
+			y: options.y,
+			width: options.wallWidth,
+			height: options.areaHeight
+		}
+	]
+
+	wallsSpecs.forEach(spec => {
+		let body = callback(spec)
+
+		if (body) {
+			Matter.Composite.addBody(wallsComposite, body)
 		}
 	})
 
-	bodies = bodies.map(body => {
-
-		let bodyOptions = Object.assign({}, {
-			angle: body.angle
-		}, options)
-
-		return Matter.Bodies.rectangle(x + body.center.x, y + body.center.y, bodyWidth, bodyHeight, bodyOptions)
-	})
-
-	return bodies
+	return wallsComposite
 }
 
+exports.walls = createWallsComposite
 
-// exports.arc(0, 0, 100, 0, 2 * Math.PI, 4)
