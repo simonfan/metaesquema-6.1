@@ -138,9 +138,9 @@ function setup(options) {
   /**
    * Sound bodies
    */
-  options.tone.players.canadian_01.start()
+  // options.tone.players.canadian_01.start()
   options.tone.players.cloud_01.start()
-  options.tone.players.coptor_01.start()
+  // options.tone.players.coptor_01.start()
   options.tone.players.glass_01.start()
   options.tone.players.night.start()
 
@@ -235,12 +235,14 @@ function setup(options) {
     (CANVAS_HEIGHT / 2 * 4/5) + 40, // radius
     0, // startAngle
     2 * Math.PI, // endAngle
-    40, //sides
+    100, //sides
     {
       // bodyWidth:
       bodyHeight: 10,
     }, {
-      isStatic: true,
+      // isStatic: true,
+      angle: 0,
+      density: 1,
       restitution: 1,
       render: {
         // fillStyle: 'red',
@@ -286,21 +288,21 @@ function setup(options) {
 }
 
 loadPlayers([
-  {
-    name: 'canadian_01',
-    url: 'resources/canadian_01.wav',
-    loop: true,
-  },
+  // {
+  //   name: 'canadian_01',
+  //   url: 'resources/canadian_01.wav',
+  //   loop: true,
+  // },
   {
     name: 'cloud_01',
     url: 'resources/cloud_01.wav',
     loop: true,
   },
-  {
-    name: 'coptor_01',
-    url: 'resources/coptor_01.wav',
-    loop: true,
-  },
+  // {
+  //   name: 'coptor_01',
+  //   url: 'resources/coptor_01.wav',
+  //   loop: true,
+  // },
   {
     name: 'glass_01',
     url: 'resources/glass_01.wav',
